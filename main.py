@@ -1,5 +1,5 @@
-from os import system
-system("python3 make_file.py")
+# from os import system
+# system("python3 make_file.py")
 ###############################
 ###############################
 from scarf_eco import launch
