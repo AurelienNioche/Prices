@@ -70,6 +70,8 @@ cdef class Agent(object):
                     self.in_hand[object_b] = 0
                     new_a_quantity = (b_quantity_in_hand/b_quantity) * a_quantity
 
+                    self.consume()
+
                     return np.array([new_a_quantity, b_quantity_in_hand])
 
             else:
@@ -155,6 +157,7 @@ cdef class Agent(object):
         if exchange_occurs:
 
             self.proceed_to_exchange(object_a, object_b, other_agent_response[0], other_agent_response[1])
+            # Maybe we want him to consume at this point
             self.consume()
 
         return exchange_occurs
@@ -209,7 +212,7 @@ cdef class Economy(object):
         self.reproduction_rate = 0.05
         self.n_reproduction_pair = int((self.reproduction_rate * self.n_agent)/2.)
         # print("n reproduction pair", self.n_reproduction_pair)
-        self.p_mutation = 0.1
+        self.p_mutation = 0.01
 
         # -------- #
 
@@ -382,8 +385,8 @@ cdef class Economy(object):
 
         # # Each agent consumes at the end of each round.
         # for i in range(self.n_agent):
-        # 
-        #     self.agents[i].consume(self.production_quantities)
+        #
+        #     self.agents[i].consume()
 
     cdef create_agents(self):
 
