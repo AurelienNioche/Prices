@@ -125,31 +125,7 @@ class RLEconomy(Economy):
         self.fitness[:] = 0
 
 
-def save(results, results_folder="../dataRL"):
-
-    if not path.exists(results_folder):
-
-        mkdir(results_folder)
-
-    for i in results.keys():
-
-        json.dump(results[i].tolist(),
-                  open("{}/deviation_from_equilibrium_{}.json".format(results_folder, i), mode="w"), indent=4)
-
-
 def launch(**kwargs):
 
     e = RLEconomy(**kwargs)
     return e.play()
-
-
-def main():
-
-    results = launch(
-        n_agent=1000 * 3, n_generation=1000, n_period_per_generation=10
-    )
-    save(results)
-
-if __name__ == "__main__":
-
-    main()

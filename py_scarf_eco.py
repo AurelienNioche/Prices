@@ -2,7 +2,6 @@
 #  Based on Gintis, 2007
 ###############################
 import numpy as np
-import json
 from tqdm import tqdm
 
 debug = False
