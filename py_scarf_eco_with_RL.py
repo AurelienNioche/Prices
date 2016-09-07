@@ -4,8 +4,6 @@
 import numpy as np
 from tqdm import tqdm
 from itertools import product
-from os import path, mkdir
-import json
 from scarf_eco import Economy, Agent
 
 debug = False
@@ -15,7 +13,7 @@ class RLAgent(Agent):
 
     def __init__(self, prod, cons, third, prices, production_quantities, idx):
 
-        Agent.__init__(self)
+        Agent.__init__(self) # Will take args by its own (is Cython black magic?)
         self.strategies = np.asarray([i for i in product([1, 0, -1], repeat=3)])
         self.strategies_values = np.ones(len(self.strategies)) * 0.5
         self.n_strategies = len(self.strategies)
