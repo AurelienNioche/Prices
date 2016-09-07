@@ -3,7 +3,7 @@ from pylab import plt, np
 from os import path, mkdir
 
 
-def main(data_folder="../data"):
+def main(data_folder="../data", figure_folder="../figures"):
 
     deviation_from_equilibrium = dict()
     for i in [(1, 0), (2, 0), (2, 1)]:
@@ -19,12 +19,11 @@ def main(data_folder="../data"):
         ax.plot(x, deviation_from_equilibrium[i], label='{} against {}'.format(i[0], i[1]))
 
     ax.legend(fontsize=12)  # loc='upper center
-    ax.set_xlabel("period")
+    ax.set_xlabel("generation")
     ax.set_ylabel("actual price / equilibrium price")
 
     ax.set_title("Price Dynamics in Scarf Three-good Economy \n(relative deviation from equilibrium prices)")
 
-    figure_folder = "../figures"
     if not path.exists(figure_folder):
         mkdir(figure_folder)
     plt.savefig("{}/figure.pdf".format(figure_folder))
@@ -34,4 +33,6 @@ def main(data_folder="../data"):
 
 if __name__ == "__main__":
 
-    main(data_folder="../data")
+    rl_or_not_rl = "RL"
+
+    main(data_folder="../data{}".format(rl_or_not_rl), figure_folder="../figures{}".format(rl_or_not_rl))

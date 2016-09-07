@@ -1,9 +1,9 @@
+# cython: profile=True
 ###############################
 #  Based on Gintis, 2007
 ###############################
 import numpy as np
 cimport numpy as cnp
-import json
 from tqdm import tqdm
 from cpython cimport bool
 
@@ -61,7 +61,7 @@ cdef class Agent(object):
                     self.in_hand[object_b] -= b_quantity
                     self.in_hand[object_a] += a_quantity
                     
-                    self.consume()
+                    # self.consume()
 
                     return np.array([a_quantity, b_quantity])
 
@@ -70,7 +70,7 @@ cdef class Agent(object):
                     self.in_hand[object_b] = 0
                     new_a_quantity = (b_quantity_in_hand/b_quantity) * a_quantity
 
-                    self.consume()
+                    # self.consume()
 
                     return np.array([new_a_quantity, b_quantity_in_hand])
 
@@ -158,7 +158,7 @@ cdef class Agent(object):
 
             self.proceed_to_exchange(object_a, object_b, other_agent_response[0], other_agent_response[1])
             # Maybe we want him to consume at this point
-            self.consume()
+            # self.consume()
 
         return exchange_occurs
 
@@ -169,7 +169,7 @@ cdef class Agent(object):
 
     cpdef consume(self):
 
-        self.utility += np.min([self.in_hand[self.P]/self.production_quantities[self.P],
+        self.utility += min([self.in_hand[self.P]/self.production_quantities[self.P],
                                 self.in_hand[self.C]/self.production_quantities[self.C]])
 
         self.in_hand[self.C] = 0
@@ -187,12 +187,12 @@ cdef class Agent(object):
 cdef class Economy(object):
 
     cdef:
-        int n_agent, n_generation, n_period_per_generation, n_reproduction_pair, t
-        list agents
-        dict deviation_from_equilibrium
-        float reproduction_rate, p_mutation
-        cnp.ndarray types, idx, fitness, equilibrium_prices, production_quantities
-        bool debug
+        public:
+            int n_agent, n_generation, n_period_per_generation, n_reproduction_pair, t
+            list agents
+            dict deviation_from_equilibrium
+            float reproduction_rate, p_mutation
+            cnp.ndarray types, idx, fitness, equilibrium_prices, production_quantities
 
     def __cinit__(self, int n_agent, int n_generation, int n_period_per_generation):
 
@@ -216,8 +216,6 @@ cdef class Economy(object):
 
         # -------- #
 
-        self.t = 0
-
         self.types = np.asarray([0, ] * int(self.n_agent/3) +
                                 [1, ] * int(self.n_agent/3) +
                                 [2, ] * int(self.n_agent/3))
@@ -231,11 +229,9 @@ cdef class Economy(object):
         self.deviation_from_equilibrium = {}
         for i in [(2, 0), (2, 1), (1, 0)]:
 
-            self.deviation_from_equilibrium[i] = np.zeros(self.n_generation*self.n_period_per_generation)
+            self.deviation_from_equilibrium[i] = np.zeros(self.n_generation)
 
         # ----- #
-
-        self.debug = debug
 
     cpdef play(self):
 
@@ -253,22 +249,20 @@ cdef class Economy(object):
 
             for j in range(self.n_period_per_generation):
 
-                self.t = i*self.n_period_per_generation + j
-
                 # if self.debug:
                 #
                 #     print("")
                 #     print("t", i*self.n_period_per_generation + j)
 
                 self.run()
-                self.compute_deviation_from_equilibrium()
                 self.update_agent_fitness()
 
+            self.compute_deviation_from_equilibrium(i)
             self.reproduce_agents()
 
         return self.deviation_from_equilibrium
 
-    cdef update_agent_fitness(self):
+    cpdef update_agent_fitness(self):
 
         cdef:
             i
@@ -351,21 +345,18 @@ cdef class Economy(object):
         # Reinitialize fitness counter
         self.fitness[:] = 0
 
-    cdef run(self):
+    cpdef run(self):
 
         cdef:
             int i
             cnp.ndarray random_order
             object initiator, responder
-            float production_quantity
 
         # if self.debug:
         #     print("Run one round.")
 
         # Each agent produces at the beginning of each round. He gets free of other goods he could have.
         for i in range(self.n_agent):
-
-            production_quantity = self.production_quantities[self.agents[i].P]
 
             self.agents[i].produce()
 
@@ -383,12 +374,12 @@ cdef class Economy(object):
             # The 'initiator' can make a series of propositions to the responder.
             initiator.meet(responder)
 
-        # # Each agent consumes at the end of each round.
-        # for i in range(self.n_agent):
-        #
-        #     self.agents[i].consume()
+        # Each agent consumes at the end of each round.
+        for i in range(self.n_agent):
 
-    cdef create_agents(self):
+            self.agents[i].consume()
+
+    cpdef create_agents(self):
 
         cdef:
             int idx, i, j, k
@@ -411,31 +402,36 @@ cdef class Economy(object):
                 self.agents.append(a)
                 idx += 1
 
-    cdef compute_deviation_from_equilibrium(self):
+    cpdef compute_deviation_from_equilibrium(self, int actual_generation):
 
         cdef:
-            int  a, b, i
-            cnp.ndarray prices_for_a, prices_for_b
-            float deviation_a_against_b
+            int  a, b, i, k
+            cnp.ndarray mean_prices, prices_for_k
+            float deviation_a_against_b, prices_for_a, prices_for_b
 
         # if self.debug:
         #
         #     print("Compute deviation from equilibrium.")
+        mean_prices = np.zeros(3)
+
+        for k in range(3):
+
+            prices_for_k = np.zeros(self.n_agent)
+            for i in range(self.n_agent):
+                prices_for_k[i] = self.agents[i].prices[k]
+
+            mean_prices[k] = np.mean(prices_for_k)
 
         for a, b in [(2, 0), (2, 1), (1, 0)]:
 
-            prices_for_a = np.zeros(self.n_agent)
-            prices_for_b = np.zeros(self.n_agent)
-            for i in range(self.n_agent):
-
-                prices_for_a[i] = self.agents[i].prices[a]
-                prices_for_b[i] = self.agents[i].prices[b]
+            prices_for_a = mean_prices[a]
+            prices_for_b = mean_prices[b]
 
             deviation_a_against_b = \
-                (np.mean(prices_for_a)/np.mean(prices_for_b)) / \
-                (self.equilibrium_prices[a]/self.equilibrium_prices[b])
+                ((prices_for_a / prices_for_b) /
+                (self.equilibrium_prices[a]/self.equilibrium_prices[b])) - 1
 
-            self.deviation_from_equilibrium[(a, b)][self.t] = deviation_a_against_b
+            self.deviation_from_equilibrium[(a, b)][actual_generation] = deviation_a_against_b
 
             # if debug:
             #
