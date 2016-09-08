@@ -10,7 +10,7 @@ def main():
 
     results = launch(
         n_agent=1000 * 3,  # original: 1000 * 3
-        n_generation=10000,  # original: 2500
+        n_generation=20000,  # original: 2500
         n_period_per_generation=10  # original: 10
     )
     save(results=results, results_folder="../data")

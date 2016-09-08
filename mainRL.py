@@ -5,7 +5,7 @@ from save import save
 def main():
 
     results = launch(
-        n_agent=1000 * 3, n_generation=1000, n_period_per_generation=10
+        n_agent=1000 * 3, n_generation=20000, n_period_per_generation=10
     )
     save(save(results=results, results_folder="../dataRL"))
 

@@ -33,6 +33,10 @@ def main(data_folder="../data", figure_folder="../figures"):
 
 if __name__ == "__main__":
 
-    rl_or_not_rl = "RL"
+    rl_or_not_rl = ""
 
-    main(data_folder="../data{}".format(rl_or_not_rl), figure_folder="../figures{}".format(rl_or_not_rl))
+    data_folder = "../AvakasData{}".format(rl_or_not_rl)
+    figure_folder = "../AvakasFigures{}".format(rl_or_not_rl)
+
+
+    main(data_folder=data_folder, figure_folder=figure_folder)
