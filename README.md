@@ -1,2 +1,2 @@
 # Prices
-Based on Guntis (2007). Work in progress...
+Based on Guntis (2007).
